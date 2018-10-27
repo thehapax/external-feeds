@@ -1,7 +1,7 @@
 # Python imports
-
 import requests, json, sys
 from styles import green, yellow, blue, red, pink, bold, underline
+import re
 
 GECKO_COINS_URL = 'https://api.coingecko.com/api/v3/coins/'
 
@@ -35,9 +35,18 @@ def check_gecko_symbol_exists(coinlist, symbol):
         return None
     
 
+def filter_bit_symbol(symbol):
+    # if matches bitUSD or any bit prefix, strip 
+    stripBit = re.match(r'bit[A-Z]{3}' , symbol) 
+    sym = symbol
+    if stripBit:
+        sym = re.sub("bit", "", symbol)
+    return sym
+
+
 def get_gecko_market_price(base, quote):
 
-    try:
+    try:        
         coin_list = get_gecko_json(GECKO_COINS_URL+'list')
         quote_name = check_gecko_symbol_exists(coin_list, quote.lower())
         
@@ -62,21 +71,14 @@ def get_gecko_market_price(base, quote):
         return None
 
 
-
-if __name__ == '__main__':
-
+def test_gecko_pricefeed():
     '''base currency for coin gecko is in USD,EUR,JPY, CAD, etc, 
     see entire list here: https://api.coingecko.com/api/v3/global
     
     Example of no market = BTC/USDT
     Example of working market BTC/EUR or BTC/USD
     '''
-
-    base = 'USD'
-    quote = 'BTC'    
-
     try:
-
         symbol = sys.argv[1]  # get exchange id from command line arguments
         print(symbol)
 
@@ -86,10 +88,34 @@ if __name__ == '__main__':
         base = symbol.split('/')[1]
         print("base:" + base)
 
-        current_price = get_gecko_market_price(base, quote)
+        new_base = filter_bit_symbol(base)
+        print("old base", base, "new base", new_base, sep=": ")
+
+        new_quote = filter_bit_symbol(quote)
+        print("old quote", quote, "new quote", new_quote, sep=": ")
+
+        current_price = get_gecko_market_price(new_base, new_quote)
         print(current_price)
+        
+        if current_price is None:
+            # try inverted version
+            print(" Trying pair inversion...")
+            current_price = get_gecko_market_price(new_quote, new_base)
+            # invert price
+            print(new_base+"/"+new_quote+ ":"+ str(current_price))
+            if current_price is not None:
+                actual_price = 1/current_price
+                print(new_quote+"/"+new_base+ ":"+ str(actual_price))
 
     except Exception as e:
         print(type(e).__name__, e.args, str(e))
         print_usage()
 
+
+
+if __name__ == '__main__':
+ 
+#    base = 'USD'
+#    quote = 'BTC'    
+ 
+    test_gecko_pricefeed()

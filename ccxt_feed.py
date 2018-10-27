@@ -30,11 +30,23 @@ def print_ticker(exchange, symbol):
         'volume: ' + str(ticker['quoteVolume']))
 
 
-
 def print_exch_symbols(exchange):
     # output all symbols
     print_args(green(id), 'has', len(exchange.symbols), 'symbols:', yellow(', '.join(exchange.symbols)))
 
+
+
+def get_consolidated_pair(exchange, base, quote):
+    # check to see if the symbols exist independently
+    # then check to see if there is a USD pair
+    
+    # split symbol into base and quote
+    for i in exchange.symbols:
+        if base ==  i:
+            print("ok", base, sep=':')
+
+            
+    
 
 def get_exchanges():
     return ccxt.exchanges
@@ -64,16 +76,8 @@ def get_ticker(exchange, symbol):
 
 
 
-
-if __name__ == '__main__':
-
-    print("\n\n CCXT -------------------------------------\n\n")
-
-#    supported_exchanges = 'Supported exchanges:', ', '.join(get_exchanges())
-#    print(supported_exchanges)
-
+def test_ccxt_feed():
     try:
-
         id = sys.argv[1]  # get exchange id from command line arguments
 
         # check if the exchange is supported by ccxt
@@ -106,4 +110,11 @@ if __name__ == '__main__':
 
 
 
+
+if __name__ == '__main__':
+
+    test_ccxt_feed()
+
+#    supported_exchanges = 'Supported exchanges:', ', '.join(get_exchanges())
+#    print(supported_exchanges)
 
