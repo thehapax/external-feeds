@@ -76,6 +76,24 @@ def get_ticker(exchange, symbol):
 
 
 
+def test_consolidated_pair(pair):
+    pair = 'STEEM:BTS' #     pair = 'STEEM:BTS' or STEEM/BTS'
+    exchange = 'bitfinex'
+    base = ''
+    quote = ''
+
+    if re.match(r':', pair):
+        base = pair.split(':')[0]
+        quote = pair.split(':')[1]
+    elif re.match(r'/', pair):
+        base = pair.split(':')[0]
+        quote = pair.split(':')[1]
+
+#    if base && quote:
+#        get_consolidated_pair(exchange, base, quote)
+    
+
+
 def test_ccxt_feed():
     try:
         id = sys.argv[1]  # get exchange id from command line arguments
@@ -112,6 +130,8 @@ def test_ccxt_feed():
 
 
 if __name__ == '__main__':
+
+#    test_consolidated_pair()
 
     test_ccxt_feed()
 

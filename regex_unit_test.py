@@ -2,7 +2,8 @@
 # the above tag defines encoding for this document and is for Python 2.x compatibility
 import re
 
-regex = r"[:|/]"
+
+regex = r"[:|/]" # put any regex here for testing
 
 test_str = ("STEEM:BTS\n"
             "BTC/USD\n"
@@ -12,7 +13,7 @@ test_str = ("STEEM:BTS\n"
 
 matches = re.finditer(regex, test_str)
 
-print(test_str)
+#print(test_str)
 
 for matchNum, match in enumerate(matches):
     matchNum = matchNum + 1
@@ -22,6 +23,8 @@ for matchNum, match in enumerate(matches):
                                                                           end = match.end(), 
                                                                           match = match.group()))
     
+
+
     for groupNum in range(0, len(match.groups())):
         groupNum = groupNum + 1
         
