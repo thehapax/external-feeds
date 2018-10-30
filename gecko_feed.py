@@ -1,5 +1,6 @@
 # Python imports
 import requests, json, sys
+import click
 from styles import *
 from  process_pair import *
 
@@ -19,9 +20,10 @@ def debug(*args):
 
 
 def print_usage():
-    print_args("Usage: python " + sys.argv[0], yellow('[symbol]'))
-    print_args("Symbol is required, for example:")
-    print_args("python " + sys.argv[0], yellow('BTC/USD'))
+   print("Usage: python3 gecko_feed.py",
+         yellow('[symbol]'), 
+         "Symbol is required, for example:", 
+         yellow('BTC/USD'), sep='')
 
 
 def get_gecko_json(url): 
@@ -63,18 +65,24 @@ def get_gecko_market_price(base, quote):
 
 
 ### Unit tests
+@click.group()
+def main():
+    pass
 
-def test_gecko_pricefeed():
-    '''base currency for coin gecko is in USD,EUR,JPY, CAD, etc, 
+@main.command()
+@click.argument('symbol')
+def test_feed(symbol):
+    '''
+    [symbol]  Symbol example: btc/usd or btc:usd
+
+    base currency for coin gecko is in USD,EUR,JPY, CAD, etc, 
     see entire list here: https://api.coingecko.com/api/v3/global
     
     Gecko Example of no market = BTC/USDT
     Gecko Example of working market BTC/EUR or BTC/USD
     '''
     try:
-        symbol = sys.argv[1]  # get exchange id from command line arguments
         pair = split_pair(symbol) #  pair = [quote, base]
-    
         filtered_pair = [filter_bit_symbol(j) for j in  [filter_prefix_symbol(i) for i in pair]]
         debug(filtered_pair)
 
@@ -102,5 +110,5 @@ def test_gecko_pricefeed():
 
 
 if __name__ == '__main__':
+    main()
 
-    test_gecko_pricefeed()

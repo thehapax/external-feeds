@@ -1,22 +1,10 @@
 # -*- coding: utf-8 -*-
 import os, sys, time, math
-import re
+import click
 import ccxt  # noqa: E402
 from pprint import pprint
 from styles import *
 from process_pair import *
-
-
-def print_usage():
-    print_args("Usage: python " + sys.argv[0], green('id'), yellow('[symbol]'))
-    print_args("Symbol is required, for example:")
-    print_args("python " + sys.argv[0], green('gdax'), yellow('BTC/USD'))
-    get_exchanges()
-
-
-def print_exch_symbols(exchange):
-    # output all symbols
-    print_args(green(id), 'has', len(exchange.symbols), 'symbols:', yellow(', '.join(exchange.symbols)))
 
 
 def get_exch_symbols(exchange):
@@ -30,19 +18,7 @@ def get_exchanges():
 def get_ticker(exchange, symbol):
     try:        
         # get raw json data
-        ticker = exchange.fetch_ticker(symbol.upper())
-
-        print_args(
-            green(exchange.id),
-            yellow(symbol),
-            'ticker',
-            ticker['datetime'],
-            'high: ' + str(ticker['high']),
-            'low: ' + str(ticker['low']),
-            'bid: ' + str(ticker['bid']),
-            'ask: ' + str(ticker['ask']),
-            'volume: ' + str(ticker['quoteVolume']))
-        
+        ticker = exchange.fetch_ticker(symbol.upper())    
 
     except ccxt.DDoSProtection as e:
         print(type(e).__name__, e.args, 'DDoS Protection (ignoring)')
@@ -58,10 +34,24 @@ def get_ticker(exchange, symbol):
 
 
 ###### unit tests ######
+@click.group()
+def main():
+    pass
 
-def test_ccxt_feed():
+
+@main.command()
+@click.argument('exchange')
+@click.argument('symbol')
+def test_feed(exchange, symbol):
+    '''
+    Usage: exchange [symbol]   
+    Symbol is required, for example:
+    python ccxt_feed.py test_feed gdax BTC/USD
+    ''' 
+    usage = "Usage: python ccxt_feed.py id [symbol]\nSymbol is required, for example: python ccxt_feed.py gdax BTC/USD"
+
     try:
-        id = sys.argv[1]  # get exchange id from command line arguments
+        id = exchange  # get exchange id from command line arguments
 
         # check if the exchange is supported by ccxt
         exchange_found = id in ccxt.exchanges
@@ -70,40 +60,60 @@ def test_ccxt_feed():
             print_args('Instantiating', green(id))
 
             # instantiate the exchange by id
-            exchange = getattr(ccxt, id)()
+            exch = getattr(ccxt, id)()
 
             # load all markets from the exchange
-            markets = exchange.load_markets()
-
-            if len(sys.argv) > 2:  # if symbol is present, get that symbol only
-                symbol = sys.argv[2]
-                ticker = get_ticker(exchange, symbol) 
+            markets = exch.load_markets()
+            
+            sym = symbol
+            if sym:
+                ticker = get_ticker(exch, sym) 
+                print_args(
+                    green(exch.id),
+                    yellow(sym),
+                    'ticker',
+                    ticker['datetime'],
+                    'high: ' + str(ticker['high']),
+                    'low: ' + str(ticker['low']),
+                    'bid: ' + str(ticker['bid']),
+                    'ask: ' + str(ticker['ask']),
+                    'volume: ' + str(ticker['quoteVolume']))
             else: 
                 print_args('Symbol not found')
-                print_exch_symbols(exchange)
-                print_usage()
-
+                print_exch_symbols(exch)
+                print(usage)
+        
         else:
             print_args('Exchange ' + red(id) + ' not found')
-            print_usage()
-
+            print(usage)
     except Exception as e:
         print(type(e).__name__, e.args, str(e))
-        print_usage()
+        print(usage)
 
 
-
-def test_exchange_list():
+@main.command()
+def test_exch_list():
+    '''
+    gets a list of supported exchanges
+    '''
     supported_exchanges = get_exchanges()
     exch_list = ', '.join(str(name) for name in supported_exchanges)
     print(bold(underline('Supported exchanges: ')))
     pprint(exch_list, width=80)
 
 
+@main.command()
+@click.argument('exchange')
+def test_exch_sym(exchange):
+    ''' 
+    print all symbols from an exchange
+    '''
+    # output all symbols    
+    print_args(green(id), 'has', len(exchange.symbols), 'symbols:', yellow(', '.join(exchange.symbols)))
+
+
 
 if __name__ == '__main__':
-
-#    test_exchange_list()
-    test_ccxt_feed()
+    main()
     
 
