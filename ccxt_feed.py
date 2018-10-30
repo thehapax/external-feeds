@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
-import os
-import sys
-import time
+import os, sys, time, math
+import re
 import ccxt  # noqa: E402
-from styles import green, yellow, blue, red, pink, bold, underline
+from pprint import pprint
+from styles import *
+from process_pair import *
 
-
-def print_args(*args):
-    print(' '.join([str(arg) for arg in args]))
 
 def print_usage():
     print_args("Usage: python " + sys.argv[0], green('id'), yellow('[symbol]'))
@@ -16,52 +14,35 @@ def print_usage():
     get_exchanges()
 
 
-def print_ticker(exchange, symbol):
-    ticker = exchange.fetch_ticker(symbol.upper())
-    print_args(
-        green(exchange.id),
-        yellow(symbol),
-        'ticker',
-        ticker['datetime'],
-        'high: ' + str(ticker['high']),
-        'low: ' + str(ticker['low']),
-        'bid: ' + str(ticker['bid']),
-        'ask: ' + str(ticker['ask']),
-        'volume: ' + str(ticker['quoteVolume']))
-
-
 def print_exch_symbols(exchange):
     # output all symbols
     print_args(green(id), 'has', len(exchange.symbols), 'symbols:', yellow(', '.join(exchange.symbols)))
 
 
-
-def get_consolidated_pair(exchange, base, quote):
-    # check to see if the symbols exist independently
-    # then check to see if there is a USD pair
-    
-    # split symbol into base and quote
-    for i in exchange.symbols:
-        if base ==  i:
-            print("ok", base, sep=':')
-
-            
+def get_exch_symbols(exchange):
+    return exchange.symbols
     
 
 def get_exchanges():
     return ccxt.exchanges
 
 
-def get_exch_symbols(exchange):
-    return exchange.symbols
-
-
 def get_ticker(exchange, symbol):
     try:        
-        print_ticker(exchange, symbol)
         # get raw json data
-#        ticker = exchange.fetch_ticker(symbol.upper())
-#        print(ticker)
+        ticker = exchange.fetch_ticker(symbol.upper())
+
+        print_args(
+            green(exchange.id),
+            yellow(symbol),
+            'ticker',
+            ticker['datetime'],
+            'high: ' + str(ticker['high']),
+            'low: ' + str(ticker['low']),
+            'bid: ' + str(ticker['bid']),
+            'ask: ' + str(ticker['ask']),
+            'volume: ' + str(ticker['quoteVolume']))
+        
 
     except ccxt.DDoSProtection as e:
         print(type(e).__name__, e.args, 'DDoS Protection (ignoring)')
@@ -72,27 +53,11 @@ def get_ticker(exchange, symbol):
     except ccxt.AuthenticationError as e:
         print(type(e).__name__, e.args, 'Authentication Error (missing API keys, ignoring)')
         
-        return ticker
+    return ticker
 
 
 
-def test_consolidated_pair(pair):
-    pair = 'STEEM:BTS' #     pair = 'STEEM:BTS' or STEEM/BTS'
-    exchange = 'bitfinex'
-    base = ''
-    quote = ''
-
-    if re.match(r':', pair):
-        base = pair.split(':')[0]
-        quote = pair.split(':')[1]
-    elif re.match(r'/', pair):
-        base = pair.split(':')[0]
-        quote = pair.split(':')[1]
-
-#    if base && quote:
-#        get_consolidated_pair(exchange, base, quote)
-    
-
+###### unit tests ######
 
 def test_ccxt_feed():
     try:
@@ -112,7 +77,7 @@ def test_ccxt_feed():
 
             if len(sys.argv) > 2:  # if symbol is present, get that symbol only
                 symbol = sys.argv[2]
-                get_ticker(exchange, symbol)
+                ticker = get_ticker(exchange, symbol) 
             else: 
                 print_args('Symbol not found')
                 print_exch_symbols(exchange)
@@ -128,13 +93,17 @@ def test_ccxt_feed():
 
 
 
+def test_exchange_list():
+    supported_exchanges = get_exchanges()
+    exch_list = ', '.join(str(name) for name in supported_exchanges)
+    print(bold(underline('Supported exchanges: ')))
+    pprint(exch_list, width=80)
+
+
 
 if __name__ == '__main__':
 
-#    test_consolidated_pair()
-
+#    test_exchange_list()
     test_ccxt_feed()
-
-#    supported_exchanges = 'Supported exchanges:', ', '.join(get_exchanges())
-#    print(supported_exchanges)
+    
 

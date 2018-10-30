@@ -1,2 +1,4 @@
-requests==2.19.1
-ccxt==1.17.369
+aiohttp==3.4.4
+requests>=2.20.0
+ccxt==1.17.434
+yarl==1.1.0
